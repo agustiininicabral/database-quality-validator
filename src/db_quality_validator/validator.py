@@ -71,12 +71,8 @@ def _count_check(
 def run_checks(connection: sqlite3.Connection) -> list[dict[str, Any]]:
     """Execute schema and data-quality rules against an open SQLite connection."""
     schema_results = _schema_check(connection)
-    missing_tables = {
-        item["check"].split(":", 1)[1]
-        for item in schema_results
-        if item["check"].startswith("table_exists:") and item["status"] == "FAIL"
-    }
-    if missing_tables:
+    schema_invalid = any(item["status"] == "FAIL" for item in schema_results)
+    if schema_invalid:
         return schema_results
 
     queries = [
