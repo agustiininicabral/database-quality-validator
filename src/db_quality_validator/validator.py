@@ -81,6 +81,7 @@ def run_checks(connection: sqlite3.Connection) -> list[dict[str, Any]]:
 
     queries = [
         ("customer_id_not_null", "SELECT COUNT(*) FROM customers WHERE customer_id IS NULL", "No null customer IDs"),
+        ("customer_id_unique", "SELECT COUNT(*) FROM (SELECT customer_id FROM customers GROUP BY customer_id HAVING COUNT(*) > 1)", "Customer IDs are unique"),
         ("customer_name_not_blank", "SELECT COUNT(*) FROM customers WHERE name IS NULL OR trim(name) = ''", "No blank customer names"),
         ("customer_email_not_blank", "SELECT COUNT(*) FROM customers WHERE email IS NULL OR trim(email) = ''", "No blank customer emails"),
         ("customer_email_unique", "SELECT COUNT(*) FROM (SELECT lower(trim(email)) FROM customers GROUP BY lower(trim(email)) HAVING COUNT(*) > 1)", "Customer emails are unique"),
