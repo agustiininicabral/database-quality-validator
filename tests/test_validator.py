@@ -19,7 +19,7 @@ def test_clean_sample_database_passes_all_checks(tmp_path):
     report = validate_database(database)
     assert report["status"] == "PASS"
     assert report["checks_failed"] == 0
-    assert report["checks_passed"] == 12
+    assert report["checks_passed"] == 13
 
 
 def test_validator_detects_data_quality_violations(tmp_path):
@@ -27,12 +27,14 @@ def test_validator_detects_data_quality_violations(tmp_path):
     create_sample_database(database)
     with sqlite3.connect(database) as con:
         con.execute("INSERT INTO customers VALUES (6, 'Duplicate', 'ANA@example.test')")
+        con.execute("INSERT INTO customers VALUES (1, 'Duplicate ID', 'new@example.test')")
         con.execute("INSERT INTO orders VALUES (1009, 999, 'not-a-date', -5, 'unknown')")
         con.execute("INSERT INTO orders VALUES (1009, 1, '2026-02-20', 10, 'completed')")
     report = validate_database(database)
     failures = {row["check"]: row["failures"] for row in report["results"] if row["status"] == "FAIL"}
     assert report["status"] == "FAIL"
     assert failures["customer_email_unique"] == 1
+    assert failures["customer_id_unique"] == 1
     assert failures["order_id_unique"] == 1
     assert failures["order_customer_exists"] == 1
     assert failures["order_amount_positive"] == 1
